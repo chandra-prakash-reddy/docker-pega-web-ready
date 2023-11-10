@@ -35,16 +35,33 @@ mkdir -p $tls_cert_root
 tomcat_cert_root="${pega_root}/tomcatcerts"
 mkdir -p $tomcat_cert_root
 
-prlog4j2="${config_root}/prlog4j2.xml"
-prconfig="${config_root}/prconfig.xml"
-context_xml="${config_root}/context.xml"
-server_xml="${config_root}/server.xml"
-web_xml="${config_root}/web.xml"
-tomcatusers_xml="${config_root}/tomcat-users.xml"
-catalina_properties="${config_root}/catalina.properties"
-prbootstrap_properties="${config_root}/prbootstrap.properties"
-java_security_overwrite="${config_root}/java.security.overwrite"
-tomcat_web_xml="${config_root}/tomcat-web.xml"
+decompressed_root="${config_root}/decompressed"
+mkdir -p $decompressed_root
+
+final_config_root=$config_root
+
+if "${IS_COMPRESSED}"; then
+    final_config_root=$decompressed_root
+    file_list=("prlog4j2.xml" "prconfig.xml" "context.xml" "server.xml" "web.xml" "tomcat-users.xml" "catalina.properties" "prbootstrap.properties" "java.security.overwrite" "tomcat-web.xml")
+    # decompressing the files if exists
+    for filename in "${file_list[@]}"; do
+      if [ -e "${config_root}/${filename}" ]; then
+        cat "${config_root}/${filename}" | base64 --decode | gzip -d > "${final_config_root}/${filename}"
+      fi
+    done
+fi
+
+
+prlog4j2="${final_config_root}/prlog4j2.xml"
+prconfig="${final_config_root}/prconfig.xml"
+context_xml="${final_config_root}/context.xml"
+server_xml="${final_config_root}/server.xml"
+web_xml="${final_config_root}/web.xml"
+tomcatusers_xml="${final_config_root}/tomcat-users.xml"
+catalina_properties="${final_config_root}/catalina.properties"
+prbootstrap_properties="${final_config_root}/prbootstrap.properties"
+java_security_overwrite="${final_config_root}/java.security.overwrite"
+tomcat_web_xml="${final_config_root}/tomcat-web.xml"
 
 declare -a secrets_list=("DB_USERNAME" "DB_PASSWORD" "CUSTOM_ARTIFACTORY_USERNAME" "CUSTOM_ARTIFACTORY_PASSWORD" "CUSTOM_ARTIFACTORY_APIKEY_HEADER" "CUSTOM_ARTIFACTORY_APIKEY" "CASSANDRA_USERNAME" "CASSANDRA_PASSWORD" "CASSANDRA_TRUSTSTORE_PASSWORD" "CASSANDRA_KEYSTORE_PASSWORD"  "HZ_CS_AUTH_USERNAME" "HZ_CS_AUTH_PASSWORD" "PEGA_DIAGNOSTIC_USER" "PEGA_DIAGNOSTIC_PASSWORD" "STREAM_TRUSTSTORE_PASSWORD" "STREAM_KEYSTORE_PASSWORD" "STREAM_JAAS_CONFIG")
 for secret in "${secret_root}"/*
